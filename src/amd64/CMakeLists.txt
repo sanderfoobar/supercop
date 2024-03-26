@@ -26,14 +26,22 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-function(add_amd64_library LIBNAME LIBFOLDER)
-  set(MULTIVARS SOURCES)
-  cmake_parse_arguments(AMD64_PERF "" "" "${MULTIVARS}" ${ARGN})
+set(LIBNAME "amd64-64-24k")
+set(LIBFOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-64-24k")
 
-  add_library("monero-crypto-${LIBNAME}" OBJECT
+set(ARGN
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-64-24k/fe25519_add.s"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-64-24k/fe25519_sub.s"
+    )
+
+cmake_parse_arguments(AMD64_PERF "" "" "SOURCES" ${ARGN})
+
+add_library("monero-crypto-${LIBNAME}" STATIC
     "${LIBNAME}.c" "${LIBNAME}-choose_tp.s"
     "${LIBFOLDER}/choose_t.s"
     "${LIBFOLDER}/consts.s"
+    "${LIBFOLDER}/fe25519_add.s"
+    "${LIBFOLDER}/fe25519_sub.s"
     "${LIBFOLDER}/fe25519_getparity.c"
     "${LIBFOLDER}/fe25519_freeze.s"
     "${LIBFOLDER}/fe25519_invert.c"
@@ -60,22 +68,15 @@ function(add_amd64_library LIBNAME LIBFOLDER)
     "${LIBFOLDER}/sc25519_from32bytes.c"
     "${LIBFOLDER}/sc25519_window4.c"
     ${AMD64_PERF_SOURCES})
-  target_include_directories("monero-crypto-${LIBNAME}" PRIVATE ${LIBFOLDER})
-  set_source_files_properties("${LIBFOLDER}/consts.s" PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp" LANGUAGE "C")
-endfunction (add_amd64_library)
 
-add_amd64_library(
-  "amd64-64-24k"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-64-24k"
-  SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-64-24k/fe25519_add.s"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-64-24k/fe25519_sub.s")
+set_property(TARGET "monero-crypto-${LIBNAME}" PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_source_files_properties("${LIBFOLDER}/consts.s" PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp" LANGUAGE "C")
 
-add_amd64_library(
-  "amd64-51-30k"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-51-30k"
-  SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-51-30k/fe25519_add.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-51-30k/fe25519_nsquare.s"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-51-30k/fe25519_sub.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../crypto_sign/ed25519/amd64-51-30k/ge25519_p1p1_to_pniels.s")
+target_include_directories("monero-crypto-${LIBNAME}"
+        PUBLIC $<BUILD_INTERFACE:${LIBFOLDER}>
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include/>
+        PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/monero/>
+        )
+
+monero_install_library("monero-crypto-${LIBNAME}")

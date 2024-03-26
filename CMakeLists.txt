@@ -1,4 +1,4 @@
-# Copyright (c) 2020, The Monero Project
+# Copyright (c) 2014-2023, The Monero Project
 #
 # All rights reserved.
 #
@@ -25,14 +25,17 @@
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-cmake_minimum_required(VERSION 2.8.7)
-project(monero-crypto)
-enable_language(ASM C)
-include(intree.cmake)
 
-add_library(monero-crypto $<TARGET_OBJECTS:monero-crypto-intree>)
+set(MONERO_CRYPTO_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(MONERO_CRYPTO_NAMESPACE amd64_64_24k)
+set(MONERO_GENERATED_HEADERS_DIR "${CMAKE_BINARY_DIR}/generated_include")
+set(MONERO_CRYPTO_LIBRARY "amd64-64-24k")
+set(HEADER_FILE "${MONERO_GENERATED_HEADERS_DIR}/crypto/wallet/ops.h")
 
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/monero/crypto/${MONERO_CRYPTO_LIBRARY}.h" DESTINATION "include/monero/crypto")
-INSTALL(FILES "${CMAKE_BINARY_DIR}/include/monero/crypto.h" DESTINATION "include/monero")
-INSTALL(TARGETS monero-crypto LIBRARY)
+message(STATUS "writing ${HEADER_FILE}")
+configure_file("${MONERO_CRYPTO_DIR}/src/crypto.h.in" ${HEADER_FILE})
+
+add_subdirectory("${MONERO_CRYPTO_DIR}/src" ${CMAKE_BINARY_DIR}/monero_crypto_src)

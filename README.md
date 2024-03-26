@@ -1,5 +1,7 @@
 # Supercop
 
+Note: only 24k for now.
+
 > This project could use a rename :/
 
 The objective of this project is to provide fast cryptographic operations for
